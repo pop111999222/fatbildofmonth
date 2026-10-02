@@ -1,0 +1,9 @@
+# 本機備份、帳單與使用者資料不得提交到 GitHub
+*.json
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.tsv
+.DS_Store
+Thumbs.db
