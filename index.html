@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="每月結餘小幫手：整理收入、房租與信用卡帳單，計算每月結餘。" />
+  <title>每月結餘小幫手</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">結</div>
+        <div>
+          <strong>每月結餘</strong>
+          <span>小幫手</span>
+        </div>
+      </div>
+
+      <nav class="main-nav" aria-label="主要功能">
+        <button class="nav-item active" data-view="monthly"><span>◒</span>本月儀表板</button>
+        <button class="nav-item" data-view="annual"><span>▥</span>年度總覽</button>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="privacy-dot"></span>
+        <div>
+          <strong>資料只留在本機</strong>
+          <p>不會上傳信用卡帳單或個人資料。</p>
+        </div>
+      </div>
+      <div class="sidebar-footer">MVP · 本機版</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PERSONAL CASH FLOW</p>
+          <h1>把每個月的錢，整理成看得懂的樣子。</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="button secondary" id="load-sample">載入虛構測試資料</button>
+          <button class="button primary" id="export-data">匯出本機備份</button>
+        </div>
+      </header>
+
+      <section class="toolbar">
+        <div class="month-picker">
+          <label for="active-month">目前月份</label>
+          <input id="active-month" type="month" />
+        </div>
+        <button class="text-button" id="new-month">＋ 新增月份</button>
+        <label class="import-file-label button outline" for="backup-import">匯入備份 JSON</label>
+        <input id="backup-import" type="file" accept="application/json,.json" hidden />
+      </section>
+
+      <div id="monthly-view" class="view active-view">
+        <section class="summary-grid" aria-label="本月摘要">
+          <article class="summary-card balance-card">
+            <div class="summary-label">本月結餘 <span class="info-dot" title="薪資＋兼職收入－房租－元大卡費－富邦卡費">i</span></div>
+            <div class="summary-value" id="summary-balance">NT$ 0</div>
+            <div class="summary-meta" id="summary-balance-meta">等待輸入本月資料</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-label">本月收入</div>
+            <div class="summary-value" id="summary-income">NT$ 0</div>
+            <div class="summary-meta">薪資＋兼職</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-label">固定支出</div>
+            <div class="summary-value" id="summary-fixed">NT$ 0</div>
+            <div class="summary-meta">房租</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-label">信用卡合計</div>
+            <div class="summary-value" id="summary-cards">NT$ 0</div>
+            <div class="summary-meta" id="summary-card-meta">元大＋富邦</div>
+          </article>
+        </section>
+
+        <section class="content-grid two-columns">
+          <article class="panel income-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">MONTHLY INPUT</p>
+                <h2>收入與固定支出</h2>
+              </div>
+              <span class="panel-icon">✦</span>
+            </div>
+            <div class="form-grid">
+              <label class="field"><span>薪資</span><div class="money-input"><i>NT$</i><input id="salary" type="number" min="0" step="1" placeholder="0" /></div></label>
+              <label class="field"><span>兼職收入</span><div class="money-input"><i>NT$</i><input id="side-income" type="number" min="0" step="1" placeholder="0" /></div></label>
+              <label class="field"><span>房租 <small>可修改預設值</small></span><div class="money-input"><i>NT$</i><input id="rent" type="number" min="0" step="1" placeholder="0" /></div></label>
+            </div>
+            <label class="field full-field"><span>本月備註</span><textarea id="month-notes" rows="2" placeholder="例如：本月有一次性收入"></textarea></label>
+            <div class="panel-footer"><span class="saved-status" id="saved-status">尚未儲存變更</span><button class="button primary" id="save-month">儲存本月資料</button></div>
+          </article>
+
+          <article class="panel reconcile-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">RECONCILIATION</p>
+                <h2>帳單對帳狀態</h2>
+              </div>
+              <span class="panel-icon">◎</span>
+            </div>
+            <div class="reconcile-list">
+              <div class="reconcile-row"><div class="bank-logo yuanta">元</div><div class="reconcile-name"><strong>元大信用卡</strong><span id="yuanta-status">尚未匯入</span></div><strong id="yuanta-amount">NT$ 0</strong></div>
+              <div class="reconcile-row"><div class="bank-logo fubon">富</div><div class="reconcile-name"><strong>台北富邦信用卡</strong><span id="fubon-status">尚未匯入</span></div><strong id="fubon-amount">NT$ 0</strong></div>
+            </div>
+            <div class="reconcile-footer"><span>明細差額</span><strong id="reconcile-difference">NT$ 0</strong></div>
+            <div class="alert-box info" id="reconcile-alert"><span>◌</span><p>匯入帳單後，這裡會顯示本期應繳金額與明細對帳結果。</p></div>
+          </article>
+        </section>
+
+        <section class="content-grid two-columns lower-grid">
+          <article class="panel category-panel">
+            <div class="panel-heading"><div><p class="section-kicker">SPENDING MIX</p><h2>本月分類</h2></div><span class="muted" id="category-total">0 筆</span></div>
+            <div id="category-list" class="category-list"><div class="empty-state compact">匯入或新增交易後，這裡會顯示分類統計。</div></div>
+          </article>
+          <article class="panel quick-panel">
+            <div class="panel-heading"><div><p class="section-kicker">NEXT ACTION</p><h2>需要你確認</h2></div><span class="warning-badge" id="pending-count">0</span></div>
+            <div id="pending-list" class="pending-list"><div class="empty-state compact">目前沒有待確認項目。</div></div>
+            <button class="button secondary full-width" id="jump-transactions">查看全部交易</button>
+          </article>
+        </section>
+
+        <section class="panel transactions-panel" id="transactions-section">
+          <div class="panel-heading transactions-heading">
+            <div><p class="section-kicker">TRANSACTIONS</p><h2>消費明細</h2><p class="panel-subtitle">保留實際交易；相同店家與金額不會被自動刪除。</p></div>
+            <div class="heading-actions"><button class="button outline" id="add-transaction">＋ 手動新增</button><button class="button primary" id="open-import">匯入帳單 PDF／截圖</button></div>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>日期</th><th>銀行</th><th>店家／說明</th><th>金額</th><th>分類</th><th>狀態</th><th></th></tr></thead><tbody id="transactions-body"></tbody></table>
+          </div>
+          <div id="transactions-empty" class="empty-state">還沒有交易明細。可以先匯入信用卡 PDF，或載入虛構測試資料。</div>
+        </section>
+      </div>
+
+      <div id="annual-view" class="view">
+        <section class="annual-hero"><div><p class="eyebrow">YEAR AT A GLANCE</p><h2 id="annual-title">2026 年度總覽</h2><p>快速看見收入、固定支出與信用卡支出的全年變化。</p></div><div class="annual-total"><span>年度結餘</span><strong id="annual-balance">NT$ 0</strong></div></section>
+        <section class="summary-grid annual-summary"><article class="summary-card"><div class="summary-label">年度收入</div><div class="summary-value" id="annual-income">NT$ 0</div><div class="summary-meta">薪資＋兼職</div></article><article class="summary-card"><div class="summary-label">年度房租</div><div class="summary-value" id="annual-rent">NT$ 0</div><div class="summary-meta">固定支出</div></article><article class="summary-card"><div class="summary-label">年度卡費</div><div class="summary-value" id="annual-cards">NT$ 0</div><div class="summary-meta">元大＋富邦</div></article><article class="summary-card"><div class="summary-label">待確認筆數</div><div class="summary-value" id="annual-pending">0</div><div class="summary-meta">需要回頭核對</div></article></section>
+        <section class="panel annual-table-panel"><div class="panel-heading"><div><p class="section-kicker">MONTHLY TREND</p><h2>每月結餘</h2></div><span class="muted">依目前選取年份</span></div><div class="table-wrap"><table><thead><tr><th>月份</th><th>收入</th><th>房租</th><th>元大卡費</th><th>富邦卡費</th><th>本月結餘</th><th>提醒</th></tr></thead><tbody id="annual-body"></tbody></table></div></section>
+      </div>
+
+      <footer class="app-footer"><span>資料儲存於此瀏覽器本機，不會自動上傳。</span><span>每月結餘小幫手 · MVP</span></footer>
+    </main>
+  </div>
+
+  <dialog id="import-dialog" class="modal"><form method="dialog" id="import-form"><div class="modal-header"><div><p class="section-kicker">IMPORT STATEMENT</p><h2>匯入信用卡帳單</h2></div><button class="icon-button" value="cancel" aria-label="關閉">×</button></div><p class="modal-description">支援 PDF 與帳單截圖。檔案會在你的瀏覽器中解析，截圖會先做本機 OCR；確認預覽後才會寫入本機資料。</p><div class="form-grid"><label class="field"><span>銀行</span><select id="import-bank"><option value="yuanta">元大信用卡</option><option value="fubon">台北富邦信用卡</option></select></label><label class="field"><span>帳單本期應繳金額 <small>找不到時可手動補上</small></span><div class="money-input"><i>NT$</i><input id="import-statement-amount" type="number" min="0" step="1" placeholder="例如 4211" /></div></label></div><div class="capture-row"><button class="button secondary capture-button" id="capture-screenshot" type="button"><span>▣</span>直接擷取目前畫面</button><span>選取帳單所在的視窗後，會自動轉成截圖並辨識。</span></div><label class="field"><span>或選擇 PDF／帳單截圖檔案</span><input id="statement-file" type="file" accept="application/pdf,.pdf,.txt,text/plain,image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" /></label><div id="import-preview" class="import-preview"><span class="preview-icon">↥</span><strong>尚未選擇檔案</strong><p>支援 PDF、PNG、JPG、WEBP；截圖會在本機 OCR，不會上傳圖片。</p></div><div class="modal-actions"><button class="button secondary" value="cancel">取消</button><button class="button primary" id="confirm-import" value="default">解析並匯入</button></div></form></dialog>
+
+  <dialog id="transaction-dialog" class="modal small-modal"><form method="dialog" id="transaction-form"><div class="modal-header"><div><p class="section-kicker">TRANSACTION</p><h2 id="transaction-dialog-title">新增交易</h2></div><button class="icon-button" value="cancel" aria-label="關閉">×</button></div><input id="editing-transaction-id" type="hidden" /><div class="form-grid"><label class="field"><span>日期</span><input id="transaction-date" type="date" /></label><label class="field"><span>銀行</span><select id="transaction-bank"><option value="yuanta">元大信用卡</option><option value="fubon">台北富邦信用卡</option></select></label><label class="field full-field"><span>店家／說明</span><input id="transaction-merchant" placeholder="例如：虛構測試店家" /></label><label class="field"><span>金額</span><div class="money-input"><i>NT$</i><input id="transaction-amount" type="number" step="1" /></div></label><label class="field"><span>分類</span><select id="transaction-category"></select></label></div><div class="modal-actions"><button class="button secondary" value="cancel">取消</button><button class="button primary" id="save-transaction" value="default">儲存交易</button></div></form></dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
